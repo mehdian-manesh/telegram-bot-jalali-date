@@ -1,9 +1,9 @@
-name = "telegram-bot-worker-test"
-type = "javascript"
+name = "jalalibot"
 
-account_id = "your-account-id"
+account_id = "2a36d46b1d29ddeae8111c53224663c0"
 workers_dev = true
 
+compatibility_date = "2025-03-21"
+main = "functions/worker.js"
+
 [build]
-upload.format = "service-worker"
-upload.dir = "./functions"
