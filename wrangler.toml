@@ -1,0 +1,9 @@
+name = "telegram-bot-worker-test"
+type = "javascript"
+
+account_id = "your-account-id"
+workers_dev = true
+
+[build]
+upload.format = "service-worker"
+upload.dir = "./functions"
