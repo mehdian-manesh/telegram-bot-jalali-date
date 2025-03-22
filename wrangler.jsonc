@@ -5,12 +5,12 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "jalalibot",
-	"main": "src/index.js",
+	// "main": "src/index.js",
 	"compatibility_date": "2025-03-21",
 	"observability": {
 		"enabled": true
 	},
-	"pages_build_output_dir" : "src"
+	"main" : "./src/worker.js"
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
