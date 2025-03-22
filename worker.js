@@ -8,33 +8,73 @@
 
 const WEBHOOK_ENDPOINT = '/endpoint';
 
+async function getSubscribers(env) {
+	const data = await env.NAMESPACE.get("list");
+	return data ? JSON.parse(data) : [];
+}
+
+async function setSubscribers(env, subscribers) {
+	await env.NAMESPACE.put("list", JSON.stringify(subscribers));
+}
+
+async function subscribe(chatId, env) {
+
+	let subscribers = await getSubscribers(env)
+
+	if (!subscribers.includes(chatId)) {
+		subscribers.push(chatId);
+		await setSubscribers(env, subscribers);
+		return "شما با موفقیت به لیست دریافت تاریخ اضافه شدید.";
+	}
+
+	return "شما قبلاً به لیست دریافت تاریخ اضافه شده‌اید.";
+}
+
+async function unsubscribe(chatId, env) {
+
+	let subscribers = await getSubscribers(env)
+
+	if (subscribers.includes(chatId)) {
+		subscribers = subscribers.filter((id) => id !== chatId);
+		await setSubscribers(env, subscribers);
+		return "شما از لیست دریافت تاریخ حذف شدید.";
+	}
+
+	return "شما در لیست دریافت تاریخ موجود نبودید.";
+}
+
+function nowJalali() {
+	const now = new Date();
+	const jDate = gregorianToJalali(
+		now.getFullYear(),
+		now.getMonth() + 1,
+		now.getDate()
+	);
+	return formatJalaliDateForPersian(now, jDate);
+}
 
 // پردازش آپدیت دریافتی از تلگرام
 async function processUpdate(update, env) {
 	if ("message" in update) {
 		const chatId = update.message.chat.id;
-		const userText = update.message.text.trim();
-		let msg = '...';
 
-		// بررسی دستور subscribe
-		if (userText === "/subscribe") {
-			// ابتدا لیست اشتراک دهندگان را از KV خوانده و اگر موجود نباشد، یک آرایه خالی در نظر می‌گیریم.
-			const data = await env.NAMESPACE.get("list");
-			let subscribers = data ? JSON.parse(data) : [];
+		// Remove any mention (e.g., "@MY_BOT_NAME") from the command.
+		const command = (update.message.text.trim()).split('@')[0].trim();
+		
+		let responseMsg = '...';
 
-			if (!subscribers.includes(chatId)) {
-				subscribers.push(chatId);
-				await env.NAMESPACE.put("list", JSON.stringify(subscribers));
-				msg = "شما با موفقیت به لیست دریافت تاریخ اضافه شدید.";
-			} else {
-				msg = "شما قبلاً به لیست دریافت تاریخ اضافه شده‌اید.";
-			}
+		if (command === "/subscribe") {
+			responseMsg = await subscribe(chatId, env);
+		} else if (command === "/unsubscribe") {
+			responseMsg = await unsubscribe(chatId, env);
+		} else if (command === "/now") {
+			responseMsg = nowJalali();
 		} else {
-			msg = `شما گفتید: ${userText}`;
+			responseMsg = 'نفهمیدم چی گفتی! دوباره بفرست.';
 		}
 
 		// send response to the user
-		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
+		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}`);
 	}
 }
 
@@ -145,19 +185,11 @@ export default {
 	},
 
 	async scheduled(event, env, ctx) {
-		const now = new Date();
-		const jDate = gregorianToJalali(
-			now.getFullYear(),
-			now.getMonth() + 1,
-			now.getDate()
-		);
-		const dateStr = formatJalaliDateForPersian(now, jDate);
 
-		// ابتدا لیست اشتراک دهندگان را از KV خوانده و اگر موجود نباشد، یک آرایه خالی در نظر می‌گیریم.
-		const data = await env.NAMESPACE.get("list");
-		let subscribers = data ? JSON.parse(data) : [];
+		let subscribers = await getSubscribers(env)
 
-		// ارسال پیام تاریخ برای تمام چت‌های موجود در لیست subscribers
+		const dateStr = nowJalali();
+
 		for (const chatId of subscribers) {
 			const sendMessageUrl = `https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(dateStr)}`;
 			await fetch(sendMessageUrl);
