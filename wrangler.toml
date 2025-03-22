@@ -1,9 +1,0 @@
-name = "jalalibot"
-
-account_id = "2a36d46b1d29ddeae8111c53224663c0"
-workers_dev = true
-
-compatibility_date = "2025-03-21"
-main = "src/worker.js"
-
-[build]
