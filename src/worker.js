@@ -50,6 +50,7 @@ function nowJalali() {
 		now.getMonth() + 1,
 		now.getDate()
 	);
+
 	return formatJalaliDateForPersian(now, jDate);
 }
 
