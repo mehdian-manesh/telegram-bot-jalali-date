@@ -3,18 +3,18 @@
  * 	- TOKEN
  *
  * KV Namespaces:
- *  - NAMESPACE
+ *  - JALALI_KV
  */
 
 const WEBHOOK_ENDPOINT = '/endpoint';
 
 async function getSubscribers(env) {
-	const data = await env.NAMESPACE.get("list");
+	const data = await env.JALALI_KV.get("list");
 	return data ? JSON.parse(data) : [];
 }
 
 async function setSubscribers(env, subscribers) {
-	await env.NAMESPACE.put("list", JSON.stringify(subscribers));
+	await env.JALALI_KV.put("list", JSON.stringify(subscribers));
 }
 
 async function subscribe(chatId, env) {
