@@ -25,6 +25,12 @@
 	 * databases, object storage, AI inference, real-time communication and more.
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
+	 "kv_namespaces": [
+		{
+			"binding": "JALALI_KV",
+			"id": "e55da689823e4308868f17c740bd4d2c"
+		}
+	]
 
 	/**
 	 * Environment Variables
