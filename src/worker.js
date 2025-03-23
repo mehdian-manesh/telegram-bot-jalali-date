@@ -44,6 +44,7 @@ async function unsubscribe(chatId, env) {
 }
 
 function nowJalali() {
+
 	const now = new Date();
 	const jDate = gregorianToJalali(
 		now.getFullYear(),
