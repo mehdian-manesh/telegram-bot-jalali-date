@@ -12,7 +12,7 @@
 	},
 	"account_id": "2a36d46b1d29ddeae8111c53224663c0",
 	"triggers": {
-		"crons": ["30 3 * * 0,1,2,3,6"]
+		"crons": ["30 4 * * sun,mon,tue,wed,sat"]
 	},
 	/**
 	 * Smart Placement
