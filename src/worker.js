@@ -76,7 +76,7 @@ async function processUpdate(update, env) {
 		}
 
 		// send response to the user
-		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}`);
+		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}&disable_notification=true`);
 	}
 }
 
@@ -193,7 +193,7 @@ export default {
 		const dateStr = nowJalali();
 
 		for (const chatId of subscribers) {
-			const sendMessageUrl = `https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(dateStr)}`;
+			const sendMessageUrl = `https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(dateStr)}&disable_notification=true`;
 			await fetch(sendMessageUrl);
 		}
 	}
