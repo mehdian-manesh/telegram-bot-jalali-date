@@ -76,7 +76,7 @@ async function processUpdate(update, env) {
 		}
 
 		// send response to the user
-		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}&disable_notification=true`);
+		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}`);
 	}
 }
 
