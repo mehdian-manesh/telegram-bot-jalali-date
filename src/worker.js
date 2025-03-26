@@ -17,30 +17,30 @@ async function setSubscribers(env, subscribers) {
 	await env.JALALI_KV.put("list", JSON.stringify(subscribers));
 }
 
-async function subscribe(chatId, env) {
+async function subscribe(chatId, topicId, env) {
+    let subscribers = await getSubscribers(env);
 
-	let subscribers = await getSubscribers(env)
+    const subscriber = { chatId, topicId };
+    if (!subscribers.some(sub => sub.chatId === chatId && sub.topicId === topicId)) {
+        subscribers.push(subscriber);
+        await setSubscribers(env, subscribers);
+        return "شما با موفقیت به لیست دریافت تاریخ اضافه شدید.";
+    }
 
-	if (!subscribers.includes(chatId)) {
-		subscribers.push(chatId);
-		await setSubscribers(env, subscribers);
-		return "شما با موفقیت به لیست دریافت تاریخ اضافه شدید.";
-	}
-
-	return "شما قبلاً به لیست دریافت تاریخ اضافه شده‌اید.";
+    return "شما قبلاً به لیست دریافت تاریخ اضافه شده‌اید.";
 }
 
-async function unsubscribe(chatId, env) {
+async function unsubscribe(chatId, topicId, env) {
+    let subscribers = await getSubscribers(env);
 
-	let subscribers = await getSubscribers(env)
+    const subscriberIndex = subscribers.findIndex(sub => sub.chatId === chatId && sub.topicId === topicId);
+    if (subscriberIndex !== -1) {
+        subscribers.splice(subscriberIndex, 1);
+        await setSubscribers(env, subscribers);
+        return "شما از لیست دریافت تاریخ حذف شدید.";
+    }
 
-	if (subscribers.includes(chatId)) {
-		subscribers = subscribers.filter((id) => id !== chatId);
-		await setSubscribers(env, subscribers);
-		return "شما از لیست دریافت تاریخ حذف شدید.";
-	}
-
-	return "شما در لیست دریافت تاریخ موجود نبودید.";
+    return "شما در لیست دریافت تاریخ موجود نبودید.";
 }
 
 function nowJalali() {
@@ -59,16 +59,17 @@ function nowJalali() {
 async function processUpdate(update, env) {
 	if ("message" in update) {
 		const chatId = update.message.chat.id;
+		const topicId = update.message.message_thread_id || null; // Capture the topic ID if available
 
 		// Remove any mention (e.g., "@MY_BOT_NAME") from the command.
 		const command = (update.message.text.trim()).split('@')[0].trim();
 
-		let responseMsg = '...';
+		let responseMsg;
 
 		if (command === "/subscribe") {
-			responseMsg = await subscribe(chatId, env);
+			responseMsg = await subscribe(chatId, topicId, env);
 		} else if (command === "/unsubscribe") {
-			responseMsg = await unsubscribe(chatId, env);
+			responseMsg = await unsubscribe(chatId, topicId, env);
 		} else if (command === "/now") {
 			responseMsg = nowJalali();
 		} else {
@@ -76,7 +77,11 @@ async function processUpdate(update, env) {
 		}
 
 		// send response to the user
-		await fetch(`https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}`);
+		let sendMessageUrl = `https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(responseMsg)}`;
+		if (topicId) {
+			sendMessageUrl += `&message_thread_id=${topicId}`;
+		}
+		await fetch(sendMessageUrl);
 	}
 }
 
@@ -187,13 +192,15 @@ export default {
 	},
 
 	async scheduled(event, env, ctx) {
-
-		let subscribers = await getSubscribers(env)
+		let subscribers = await getSubscribers(env);
 
 		const dateStr = nowJalali();
 
-		for (const chatId of subscribers) {
-			const sendMessageUrl = `https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(dateStr)}&disable_notification=true`;
+		for (const { chatId, topicId } of subscribers) {
+			let sendMessageUrl = `https://api.telegram.org/bot${env.TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(dateStr)}&disable_notification=true`;
+			if (topicId) {
+				sendMessageUrl += `&message_thread_id=${topicId}`;
+			}
 			await fetch(sendMessageUrl);
 		}
 	}
